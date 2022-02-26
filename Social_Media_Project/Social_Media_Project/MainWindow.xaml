@@ -1,0 +1,350 @@
+﻿<Window x:Class="Social_Media_Project.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="900" Width="1600" WindowStyle="none" WindowStartupLocation="CenterScreen" MinWidth="1600" MinHeight="900" Background="#FF060606">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"/>
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <ResourceDictionary>
+            <!-- BUTTON_STYLES -->
+            <Style TargetType="Button" x:Key="btnLeft">
+                <Setter Property="Background" Value="{DynamicResource PrimaryHueDarkBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontSize" Value="15" />
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}" BorderThickness="1" BorderBrush="{TemplateBinding BorderBrush}">
+                                <Grid>
+                                    <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0" />
+                                </Grid>
+                            </Border>
+
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryHueMidBrush}" />
+                                </Trigger>
+
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryHueDarkBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style TargetType="Button" x:Key="btnCenter">
+                <Setter Property="Background" Value="{DynamicResource PrimaryHueDarkBrush}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontSize" Value="15" />
+
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}" BorderThickness="1" BorderBrush="{TemplateBinding BorderBrush}">
+                                <Grid>
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryHueMidBrush}" />
+                                </Trigger>
+
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryHueDarkBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- SCROLL_BAR_DESIGN -->
+            <Style x:Key="ScrollThumbs" TargetType="{x:Type Thumb}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Grid x:Name="Grid">
+                                <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="Auto" Height="Auto" Fill="Transparent"/>
+                                <Border x:Name="Rectangle1" CornerRadius="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="Auto" Height="Auto" Background="{TemplateBinding Background}"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="Tag" Value="Horizontal">
+                                    <Setter TargetName="Rectangle1" Property="Width" Value="Auto"/>
+                                    <Setter TargetName="Rectangle1" Property="Height" Value="7"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
+                <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+                <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Width" Value="10"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ScrollBar}">
+                            <Grid x:Name="GridRoot" Width="12" Background="{x:Null}">
+                                <Track x:Name="PART_Track" Grid.Row="0" IsDirectionReversed="True" Focusable="False">
+                                    <Track.Thumb>
+                                        <Thumb x:Name="Thumb" Background="{TemplateBinding Foreground}" Style="{DynamicResource ScrollThumbs}"/>
+                                    </Track.Thumb>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton x:Name="PageUp" Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                                    </Track.IncreaseRepeatButton>
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton x:Name="PageDown" Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                                    </Track.DecreaseRepeatButton>
+                                </Track>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger SourceName="Thumb" Property="IsMouseOver" Value="True">
+                                    <Setter Value="{DynamicResource ButtonSelectBrush}" TargetName="Thumb" Property="Background"/>
+                                </Trigger>
+                                <Trigger SourceName="Thumb" Property="IsDragging" Value="True">
+                                    <Setter Value="{DynamicResource DarkBrush}" TargetName="Thumb" Property="Background"/>
+                                </Trigger>
+
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="Thumb" Property="Visibility" Value="Collapsed"/>
+                                </Trigger>
+                                <Trigger Property="Orientation" Value="Horizontal">
+                                    <Setter TargetName="GridRoot" Property="LayoutTransform">
+                                        <Setter.Value>
+                                            <RotateTransform Angle="-90"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="PART_Track" Property="LayoutTransform">
+                                        <Setter.Value>
+                                            <RotateTransform Angle="-90"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Width" Value="Auto"/>
+                                    <Setter Property="Height" Value="12"/>
+                                    <Setter TargetName="Thumb" Property="Tag" Value="Horizontal"/>
+                                    <Setter TargetName="PageDown" Property="Command" Value="ScrollBar.PageLeftCommand"/>
+                                    <Setter TargetName="PageDown" Property="Command" Value="ScrollBar.PageRightCommand"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid >
+        <Grid Height="30" VerticalAlignment="Top" Background="#FF303030" PreviewMouseDown="spHeader_PreviewMouseDown" HorizontalAlignment="Stretch">
+            <StackPanel x:Name="spHeader" HorizontalAlignment="Right">
+                <Grid x:Name="btnCloseApp" Width="30" Height="30" PreviewMouseLeftButtonDown="CloseApplicationFuncion" Background="#FF303030" MouseEnter="CloseApplicationMouseEnter" MouseLeave="CloseApplicationMouseLeave">
+                    <materialDesign:PackIcon x:Name="iconClose" Kind="Close" Foreground="White" Height="30" Width="30" HorizontalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
+        </Grid>
+
+        <Grid Background="#FF151515" Margin="0,30,0,0">
+
+            <Grid Width="300" HorizontalAlignment="Left">
+                <StackPanel x:Name="spLeft" HorizontalAlignment="Left" Width="300">
+                    <StackPanel x:Name="spBasicInfoOnLeft" Background="#FF151515" Height="286">
+                        <Image x:Name="imgProfileLeftSide" Height="150" Width="150" Margin="0,20,0,0"/>
+                        <TextBlock x:Name="tbFullName" Foreground="White" Margin="20,15,20,0" HorizontalAlignment="Center" FontSize="20" Text=""/>
+                        <TextBlock x:Name="tbUserTag" Foreground="#FF9C9C9C" Margin="20,5,20,0" HorizontalAlignment="Center" FontSize="20" Text="" FontStyle="Italic"/>
+                    </StackPanel>
+
+                    <StackPanel Height="176">
+                        <Button x:Name="btnHome" Style="{DynamicResource btnLeft}" FontSize="20" Content="HOME" Height="37" Foreground="#DDFFFFFF" Margin="10,40,10,0" Click="btnHome_Click"/>
+                        <Button x:Name="btnSearch" Style="{DynamicResource btnLeft}" FontSize="20" Content="SEARCH" Height="37" Foreground="#DDFFFFFF" Margin="10,5,10,0" Click="btnSearch_Click"></Button>
+                    </StackPanel>
+                    <StackPanel x:Name="spBasicButtonsOnLeft" Height="176">
+                        <Button x:Name="btnViewProfile" Style="{DynamicResource btnLeft}" FontSize="20" Content="PROFILE" Height="37" Foreground="#DDFFFFFF" Margin="10,20,10,0" Click="btnViewProfile_Click"/>
+                        <Button x:Name="btnFollowing" Style="{DynamicResource btnLeft}" FontSize="20" Content="FOLLOWING" Height="37" Foreground="#DDFFFFFF" Margin="10,5,10,0" Click="btnFollowing_Click"></Button>
+                        <Button x:Name="btnChats" Style="{DynamicResource btnLeft}" FontSize="20" Content="CHAT" Height="37" Foreground="#DDFFFFFF" Margin="10,5,10,0" Click="btnChats_Click" ></Button>
+
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Height="79" VerticalAlignment="Bottom" Margin="0,800,0,0">
+                    <Button x:Name="btnLogout" Style="{DynamicResource btnLeft}" FontSize="20" Content="LOGOUT" Height="37" Foreground="#DDFFFFFF" Margin="10,20,10,0" Click="btnLogout_Click"/>
+                </StackPanel>
+            </Grid>
+            <!-- GRID LEFT -->
+
+            <Grid Margin="300,0,0,0" Background="#FF151515">
+                <TabControl x:Name="tabMain" TabStripPlacement="Top" HorizontalAlignment="Center" Width="1300">
+
+                    <TabItem Header="tabHome - 0" Visibility="Collapsed">
+                        <ScrollViewer>
+                            <StackPanel x:Name="spUserPosts">
+                                <StackPanel Orientation="Horizontal" Margin="20">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="Edit" Foreground="#CCFFFFFF" Height="33" Width="33" RenderTransformOrigin="0.3,0.38" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Background="#02FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                                            <TextBox x:Name="tbPostContent" materialDesign:HintAssist.Hint="What's on your mind?" Foreground="White" Margin="5,0,10,0" FontSize="20" Width="980" TextWrapping="Wrap" VerticalScrollBarVisibility="auto" AcceptsReturn="True"/>
+
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="AttachFile" Foreground="#CCFFFFFF" Height="33" Width="33" RenderTransformOrigin="0.3,0.38" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Background="#02FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
+                                            <TextBox x:Name="tbPostImageURL" materialDesign:HintAssist.Hint="Image URL (Optional)" Foreground="White" Margin="5,20,10,0" FontSize="20" Width="980" TextWrapping="Wrap" VerticalScrollBarVisibility="auto" AcceptsReturn="True"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <Button x:Name="btnNewPost" Style="{DynamicResource btnCenter}" FontSize="20" Content="Post" Height="100" Foreground="#DDFFFFFF" Margin="10,0,10,0" Width="200" HorizontalAlignment="Center" Click="btnNewPost_Click"/>
+                                </StackPanel>
+                                <StackPanel x:Name="spPosts"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="tabChat - 1" Visibility="Collapsed">
+                        <Grid Background="#FF2B2B2B">
+                            <StackPanel Background="#FF232323" Width="400" HorizontalAlignment="Left">
+                                <TextBlock Text="Rescent Chats:" VerticalAlignment="Top" HorizontalAlignment="Stretch" Width="400" FontSize="24" Margin="15,10,0,0"/>
+                                <ScrollViewer Height="800" Margin="0,5,0,0">
+                                    <StackPanel x:Name="spListOfRescentChats" Margin="5,0,0,0" >
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </StackPanel>
+                            <TextBlock x:Name="tbChattingWith" Text="Chatting with:" Margin="420,15,0,0" FontSize="24"/>
+                            <StackPanel Margin="400,70,0,0" Background="#FF151515">
+                                <ScrollViewer x:Name="svChat" Margin="20,20,20,0" Height="680" VerticalScrollBarVisibility="Hidden">
+                                    <StackPanel x:Name="spChat"/>
+                                </ScrollViewer>
+
+                            </StackPanel>
+                            <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="400,0,0,0">
+                                <StackPanel Orientation="Horizontal" Margin="20,30,20,30" Width="1300" Background="#FF292929" VerticalAlignment="Bottom">
+                                    <TextBox x:Name="tbChatMessage" materialDesign:HintAssist.Hint="Message..." Foreground="White" Margin="5,5,10,5" FontSize="20" TextWrapping="Wrap" Width="895" KeyUp="TextBox_KeyUp"/>
+                                    <materialDesign:PackIcon Kind="KeyboardReturn" Foreground="#CCFFFFFF" Height="30" Width="28" RenderTransformOrigin="0.3,0.38" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Background="#02FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="tabSearch - 2" Visibility="Collapsed">
+                        <StackPanel>
+                            <StackPanel>
+                                <TextBox x:Name="tbSearch" TextChanged="tbSearch_TextChanged" Width="1300" FontSize="20" Margin="30" materialDesign:HintAssist.Hint="Enter a username or tag:"/>
+                            </StackPanel>
+                            <StackPanel x:Name="spSearchResult">
+
+                            </StackPanel>
+                        </StackPanel>
+
+                    </TabItem>
+
+                    <TabItem Header="tabProfile - 3" Visibility="Collapsed">
+                        <TabControl x:Name="tabMainProfile" VerticalAlignment="Top" Background="#FF18191A" HorizontalAlignment="Left" Width="1290" >
+                            <TabControl.Resources>
+                                <Style TargetType="TabItem">
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="TabItem">
+                                                <Border Name="Border" BorderThickness="1" BorderBrush="Black" Margin="0,0" Cursor="Hand">
+                                                    <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsSelected" Value="True">
+                                                        <Setter TargetName="Border" Property="Background" Value="{DynamicResource PrimaryHueDarkBrush}" />
+                                                    </Trigger>
+                                                    <Trigger Property="IsSelected" Value="False">
+                                                        <Setter TargetName="Border" Property="Background" Value="#3a3b3c" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </TabControl.Resources>
+
+                            <TabItem Background="{DynamicResource PrimaryHueDarkBrush}" BorderBrush="Black" Header="ABOUT" Foreground="White" FontSize="20">
+
+                                <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalAlignment="Center">
+                                    <Grid Background="#FF151515">
+                                        <Grid Height="300" VerticalAlignment="Top" Width="1300" HorizontalAlignment="Center" Background="#FF1D1B25"></Grid>
+                                        <Image x:Name="imgBgImage" Height="300" VerticalAlignment="Top" Width="1300" HorizontalAlignment="Center" Stretch="UniformToFill"/>
+
+                                        <StackPanel Margin="0,220,0,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image x:Name="imgUserImage" Width="150" Height="150" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="80,0,0,0">
+                                                    <Image.Effect>
+                                                        <DropShadowEffect Direction="330" Color="Black" ShadowDepth="12" BlurRadius="6" RenderingBias="Quality" />
+                                                    </Image.Effect>
+                                                </Image>
+                                                <TextBlock x:Name="tbProfileName" FontWeight="Bold" FontSize="48" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="30,0,0,0"></TextBlock>
+                                            </StackPanel>
+
+                                            <TextBlock x:Name="tbAboutBio" TextWrapping="Wrap" Padding="0,5,0,0" FontWeight="Normal" Margin="20,30,20,0"/>
+                                            <TextBlock x:Name="tbAboutLives" FontWeight="Normal" Margin="20,0,20,0"/>
+                                            <TextBlock x:Name="tbAboutRelationship" FontWeight="Normal" Margin="20,0,20,0"/>
+                                            <TextBlock x:Name="tbAboutJoined" FontWeight="Normal" Margin="20,0,20,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </ScrollViewer>
+                            </TabItem>
+
+                            <TabItem x:Name="postsTab" Background="{DynamicResource PrimaryHueDarkBrush}" BorderBrush="Black" Header="POSTS" FontSize="20" Foreground="White">
+                                <ScrollViewer>
+                                    <StackPanel x:Name="spProfilePosts" Margin="0,20,0,0"/>
+                                </ScrollViewer>
+                            </TabItem>
+
+                            <TabItem x:Name="tabSettings" Background="{DynamicResource PrimaryHueDarkBrush}" BorderBrush="Black" Header="SETTINGS" FontSize="20" Foreground="White" PreviewMouseDown="TabItem_PreviewMouseDown">
+                                <StackPanel Margin="50,20,50,20">
+                                    <TextBlock Text="Change Password" Margin="0,20,0,0"/>
+                                    <TextBox x:Name="tbSettingsOldPassword" Margin="0,10,0,0" materialDesign:HintAssist.Hint="Old Password"/>
+                                    <TextBox x:Name="tbSettingsNewPassword" materialDesign:HintAssist.Hint="New Password" Margin="0,20,0,0"/>
+                                    <TextBox x:Name="tbSettingsNewRePassword" materialDesign:HintAssist.Hint="Repeat Password" Margin="0,5,0,0"/>
+
+                                    <TextBlock Text="Change Information" Margin="0,50,0,0"/>
+                                    <TextBox x:Name="tbSettingsName" Margin="0,10,0,0" materialDesign:HintAssist.Hint="User name"/>
+                                    <TextBox x:Name="tbSettingsProfileImage" Margin="0,5,0,0" materialDesign:HintAssist.Hint="Profile Image URL"/>
+                                    <TextBox x:Name="tbSettingsBackgroundImage" Margin="0,5,0,0" materialDesign:HintAssist.Hint="Profile Background Image URL"/>
+                                    <TextBox x:Name="tbSettingsBio"  Margin="0,5,0,0" materialDesign:HintAssist.Hint="Biography"/>
+                                    <TextBox x:Name="tbSettingsLivesIn" Margin="0,5,0,0" materialDesign:HintAssist.Hint="Lives in"/>
+                                    <ComboBox x:Name="cbRelationship" Margin="0,5,0,0" materialDesign:HintAssist.Hint="Relationship status">
+                                        <ComboBoxItem Content="Single"/>
+                                        <ComboBoxItem Content="In a Relationship"/>
+                                    </ComboBox>
+
+                                    <TextBlock Text="Profile Privacy" Margin="0,50,0,0"/>
+                                    <ComboBox x:Name="cbPrivateAccount" Margin="0,10,0,0" materialDesign:HintAssist.Hint="Private Account">
+                                        <ComboBoxItem Content="Private"/>
+                                        <ComboBoxItem Content="Public"/>
+                                    </ComboBox>
+
+                                    <ComboBox x:Name="cbDoNotDisturb" Margin="0,5,0,0" materialDesign:HintAssist.Hint="Do Not Disturb Mode">
+                                        <ComboBoxItem Content="Chatty Mode"/>
+                                        <ComboBoxItem Content="Do Not Disturb Mode"/>
+                                    </ComboBox>
+
+                                    <TextBlock x:Name="tbSettingsChangesSaved" Foreground="#FF07EC00" Text="Changes Saved!" FontSize="24" Margin="0,15,0,0" Visibility="Hidden"/>
+                                    <TextBlock x:Name="tbSettingsChangesError" Foreground="#FFEC0000" Text="Error" FontSize="24" Margin="0,15,0,0" Visibility="Collapsed"/>
+
+                                    <Button x:Name="btnSettingsSaveChanges" Content="Save Changes" Foreground="#DDFFFFFF" FontSize="20" Height="40" Width="300" Click="btnSettingsSaveChanges_Click"/>
+                                </StackPanel>
+                            </TabItem>
+                        </TabControl>
+                    </TabItem>
+
+                    <TabItem Header="tabFollowing - 4" Visibility="Collapsed">
+                        <ScrollViewer>
+                            <StackPanel x:Name="spFollowingList"/>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+            <!-- GRID CENTER -->
+        </Grid>
+    </Grid>
+</Window>
