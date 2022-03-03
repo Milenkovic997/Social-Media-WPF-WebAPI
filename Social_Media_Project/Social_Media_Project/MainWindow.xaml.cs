@@ -1,9 +1,12 @@
 ﻿using MaterialDesignThemes.Wpf;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using Social_Media_Project.JsonClass;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net.Cache;
 using System.Net.Http;
 using System.Windows;
@@ -11,6 +14,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace Social_Media_Project
@@ -22,6 +26,8 @@ namespace Social_Media_Project
         private Users _user;
         private List<Posts> posts;
         public static string imageToSend;
+        private byte[] _imageFile;
+        private bool startedConversation = false;
 
         private int toIDMessage = 0;
         private string toNameMessage = "";
@@ -29,18 +35,18 @@ namespace Social_Media_Project
 
         public MainWindow()
         {
-            client.BaseAddress = new Uri("https://localhost:7227/api/");
+            client.BaseAddress = new Uri("https://localhost:5001/api/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
             InitializeComponent();
+
             getUser(WelcomeWindow._userID);
 
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += dispatcherTimer_Tick;
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
-
         }
         private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
@@ -58,9 +64,14 @@ namespace Social_Media_Project
                 {
                     if (messages[i].fromID == _user.id && messages[i].toID == toIDMessage || messages[i].fromID == toIDMessage && messages[i].toID == _user.id) counter++;
                 }
-
-                if (counter != spChat.Children.Count)
+                if (counter != spChat.Children.OfType<StackPanel>().Count())
                 {
+                    if(tabMain.SelectedIndex != 1)
+                    {
+                        string textToAdd = counter - spChat.Children.Count == 1 ? "message" : "messages";
+                        btnChats.Content = "CHAT (" + (counter - spChat.Children.Count) + " new " + textToAdd + ")";
+                    }
+
                     populateMessage();
                     svChat.ScrollToEnd();
                 }
@@ -105,6 +116,7 @@ namespace Social_Media_Project
         }
         private void btnChats_Click(object sender, RoutedEventArgs e)
         {
+            btnChats.Content = "CHAT";
             tabMain.SelectedIndex = 1;
             svChat.ScrollToEnd();
             populateMessage();
@@ -132,7 +144,7 @@ namespace Social_Media_Project
             bitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
             bitmap.EndInit();
 
-            imgProfileLeftSide.Source = bitmap;
+            imgBrushProfile.ImageSource = bitmap;
 
             getPosts(WelcomeWindow._userID);
         } // LEFT PANEL INFO + GET POSTS
@@ -173,6 +185,7 @@ namespace Social_Media_Project
         }
         private void btnMessagePerson(object sender, MouseButtonEventArgs e)
         {
+            startedConversation = true;
             string[] infoToMessage = (sender as Button).Tag.ToString().Split("<divider>");
             populateMessages(Int32.Parse(infoToMessage[0]), infoToMessage[1], infoToMessage[2]);
         }
@@ -184,6 +197,7 @@ namespace Social_Media_Project
             toImageMessage = v3;
             tabMain.SelectedIndex = 1;
 
+            btnDeleteChat.Visibility = Visibility.Visible;
             populateMessage();
             svChat.ScrollToEnd();
         }
@@ -194,6 +208,7 @@ namespace Social_Media_Project
             string response = await client.GetStringAsync("messages");
             List<Messages> messages = JsonConvert.DeserializeObject<List<Messages>>(response);
 
+            tbChattingWith.Text = toNameMessage;
             for (int j = messages.Count - 1; j >= 0; j--)
             {
                 if (messages[j].fromID == _user.id || messages[j].toID == _user.id)
@@ -209,11 +224,10 @@ namespace Social_Media_Project
 
                     if (!checkIfDuplicate)
                     {
-                        tbChattingWith.Text = "Chatting With: " + toNameMessage;
                         StackPanel spMainLeft = new StackPanel()
                         {
-                            Width = 400,
-                            Margin = new Thickness(5, 10, 0, 0),
+                            Width = 100,
+                            Margin = new Thickness(0, 10, 0, 0),
                             Cursor = Cursors.Hand
                         };
                         spMainLeft.PreviewMouseUp += new MouseButtonEventHandler(spOpenChat);
@@ -221,122 +235,131 @@ namespace Social_Media_Project
                         if (messages[j].fromID == _user.id) { spMainLeft.Tag = messages[j].toID + "<divider>" + messages[j].toName + "<divider>" + messages[j].toImage; }
                         else if(messages[j].toID == _user.id) spMainLeft.Tag = messages[j].fromID + "<divider>" + messages[j].fromName + "<divider>" + messages[j].fromImage;
 
-                        StackPanel spContentLeft = new StackPanel()
-                        {
-                            Orientation = Orientation.Horizontal,
-                            Background = (Brush)bc.ConvertFrom("#FF1F1F1F"),
-                            HorizontalAlignment = HorizontalAlignment.Left,
-                        };
-                        spMainLeft.Children.Add(spContentLeft);
+                        Ellipse ell = new Ellipse() { HorizontalAlignment = HorizontalAlignment.Left, Width = 70, Height = 70, VerticalAlignment = VerticalAlignment.Center };
+                        spMainLeft.Children.Add(ell);
 
-                        Image dynamicImageLeft = new Image
-                        {
-                            VerticalAlignment = VerticalAlignment.Top,
-                            Width = 75,
-                            Height = 75
-                        };
-                        if (messages[j].fromID == _user.id) imageSource(dynamicImageLeft, messages[j].toImage);
-                        else if (messages[j].toID == _user.id) imageSource(dynamicImageLeft, messages[j].fromImage);
-
-                        spContentLeft.Children.Add(dynamicImageLeft);
-
-                        TextBlock tbLeft = new TextBlock()
-                        {
-                            Width = 400,
-                            Margin = new Thickness(5, 0, 0, 0),
-                            TextWrapping = TextWrapping.Wrap,
-                            FontSize = 22
-                        };
-                        if (messages[j].fromID == _user.id) tbLeft.Text = messages[j].toName + "\n" + messages[j].date.ToString("hh:mm tt dd/MMM/yyyy");
-                        else if (messages[j].toID == _user.id) tbLeft.Text = messages[j].fromName + "\n" + messages[j].date.ToString("hh:mm tt dd/MMM/yyyy");
-                        spContentLeft.Children.Add(tbLeft);
+                        ImageBrush dynamicImageLeft = new ImageBrush();
+                        if (messages[j].fromID == _user.id) dynamicImageLeft.ImageSource = new BitmapImage(new Uri(messages[j].toImage, UriKind.Absolute), new RequestCachePolicy(RequestCacheLevel.BypassCache)) { CacheOption = BitmapCacheOption.OnLoad };
+                        else if (messages[j].toID == _user.id) dynamicImageLeft.ImageSource = new BitmapImage(new Uri(messages[j].fromImage, UriKind.Absolute), new RequestCachePolicy(RequestCacheLevel.BypassCache)) { CacheOption = BitmapCacheOption.OnLoad };
+                        ell.Fill = dynamicImageLeft;
                     }
                 }
             }
 
-            for(int i = 0; i < messages.Count; i++)
+            if (startedConversation)
             {
-                if (messages[i].fromID == _user.id && messages[i].toID == toIDMessage)
+                DateTime lastDate = new DateTime();
+                for (int i = 0; i < messages.Count; i++)
                 {
-                    StackPanel spMain = new StackPanel()
+                    TimeSpan span = messages[i].date.Subtract(lastDate);
+                    if (span.TotalMinutes >= 90)
                     {
-                        Tag = messages[i].id,
-                        Width = 960,
-                        Margin = new Thickness(5),
-                    };
-                    spChat.Children.Add(spMain);
+                        TextBlock tb = new TextBlock()
+                        {
+                            Width = 700,
+                            Text = messages[i].date.ToString("MM/dd/yyyy hh:mm tt"),
+                            Padding = new Thickness(15, 5, 15, 0),
+                            TextAlignment = TextAlignment.Center,
+                            Margin = new Thickness(0, 10, 0, 20),
+                            Foreground = Brushes.Gray,
+                            FontSize = 18
+                        };
+                        spChat.Children.Add(tb);
+                    }
+                    lastDate = messages[i].date;
 
-                    StackPanel spContent = new StackPanel()
+                    if (messages[i].fromID == _user.id)
                     {
-                        Width = 600,
-                        Background = (Brush)bc.ConvertFrom("#FF1F1F1F"),
-                        HorizontalAlignment = HorizontalAlignment.Right,
-                        Orientation = Orientation.Horizontal,
-                    };
-                    spMain.Children.Add(spContent);
-                    
-                    TextBlock tb = new TextBlock()
-                    {
-                        Width = 520,
-                        TextWrapping = TextWrapping.Wrap,
-                        Text = messages[i].content,
-                        Padding = new Thickness(15, 10, 15, 10),
-                        FontSize = 24
-                    };
-                    spContent.Children.Add(tb);
+                        StackPanel spMain = new StackPanel()
+                        {
+                            Margin = new Thickness(0, 7, 10, 2),
+                            Width = 700,
+                        };
+                        spChat.Children.Add(spMain);
 
-                    Image dynamicImage = new Image
-                    {
-                        VerticalAlignment = VerticalAlignment.Top,
-                        Width = 50,
-                        Height = 50
-                    };
-                    imageSource(dynamicImage, _user.imageURL);
-                    spContent.Children.Add(dynamicImage);
-                }
-                else if (messages[i].fromID == toIDMessage && messages[i].toID == _user.id) 
-                {
-                    StackPanel spMain = new StackPanel()
-                    {
-                        Tag = messages[i].id,
-                        Width = 960,
-                        Margin = new Thickness(5),
-                    };
-                    spChat.Children.Add(spMain);
+                        StackPanel spContent = new StackPanel()
+                        {
+                            Tag = _user.imageURL + "<divider>" + _user.id,
+                            Orientation = Orientation.Horizontal,
+                            Width = 500,
+                            HorizontalAlignment = HorizontalAlignment.Right,
+                        };
+                        spMain.Children.Add(spContent);
 
-                    StackPanel spContent = new StackPanel()
-                    {
-                        Orientation = Orientation.Horizontal,
-                        Width = 600,
-                        Background = (Brush)bc.ConvertFrom("#FF1F1F1F"),
-                        HorizontalAlignment = HorizontalAlignment.Left,
-                    };
-                    spMain.Children.Add(spContent);
+                        Border b = new Border()
+                        {
+                            CornerRadius = new CornerRadius(10),
+                            Background = (Brush)bc.ConvertFrom("#FF1F1F1F"),
+                            HorizontalAlignment = HorizontalAlignment.Right,
+                        };
+                        spContent.Children.Add(b);
+                        TextBlock tb = new TextBlock()
+                        {
+                            Width = 400,
+                            TextWrapping = TextWrapping.Wrap,
+                            Text = messages[i].content,
+                            Padding = new Thickness(15, 5, 15, 0),
+                            FontSize = 18
+                        };
+                        b.Child = tb;
 
-                    Image dynamicImage = new Image
-                    {
-                        VerticalAlignment = VerticalAlignment.Top,
-                        Width = 50,
-                        Height = 50
-                    };
-                    imageSource(dynamicImage, toImageMessage);
-                    spContent.Children.Add(dynamicImage);
+                        Ellipse ell = new Ellipse() { Width = 50, Height = 50, VerticalAlignment = VerticalAlignment.Bottom };
+                        spContent.Children.Add(ell);
 
-                    TextBlock tb = new TextBlock()
+                        ImageBrush dynamicImageLeft = new ImageBrush();
+                        dynamicImageLeft.ImageSource = new BitmapImage(new Uri(_user.imageURL, UriKind.Absolute), new RequestCachePolicy(RequestCacheLevel.BypassCache)) { CacheOption = BitmapCacheOption.OnLoad };
+                        ell.Fill = dynamicImageLeft;
+
+                    }
+                    else if (messages[i].fromID == toIDMessage && messages[i].toID == _user.id)
                     {
-                        Width = 520,
-                        TextWrapping = TextWrapping.Wrap,
-                        Text = messages[i].content,
-                        Padding = new Thickness(15, 10, 15, 10),
-                        FontSize = 24
-                    };
-                    spContent.Children.Add(tb);
+                        StackPanel spMain = new StackPanel()
+                        {
+                            Margin = new Thickness(10, 7, 0, 2),
+                            Width = 700,
+                        };
+                        spChat.Children.Add(spMain);
+
+                        StackPanel spContent = new StackPanel()
+                        {
+                            Tag = toImageMessage + "<divider>" + messages[i].fromID,
+                            Orientation = Orientation.Horizontal,
+                            Width = 500,
+                            HorizontalAlignment = HorizontalAlignment.Left,
+                        };
+                        spMain.Children.Add(spContent);
+
+                        Ellipse ell = new Ellipse() { Width = 50, Height = 50, VerticalAlignment = VerticalAlignment.Bottom };
+                        spContent.Children.Add(ell);
+
+                        ImageBrush dynamicImageLeft = new ImageBrush();
+                        dynamicImageLeft.ImageSource = new BitmapImage(new Uri(toImageMessage, UriKind.Absolute), new RequestCachePolicy(RequestCacheLevel.BypassCache)) { CacheOption = BitmapCacheOption.OnLoad };
+                        ell.Fill = dynamicImageLeft;
+
+                        Border b = new Border()
+                        {
+                            CornerRadius = new CornerRadius(10),
+                            Background = (Brush)bc.ConvertFrom("#FF1F1F1F"),
+                            HorizontalAlignment = HorizontalAlignment.Left,
+                        };
+                        spContent.Children.Add(b);
+                        TextBlock tb = new TextBlock()
+                        {
+                            Width = 400,
+                            TextWrapping = TextWrapping.Wrap,
+                            Text = messages[i].content,
+                            Padding = new Thickness(15, 5, 15, 0),
+                            FontSize = 18
+                        };
+                        b.Child = tb;
+                    }
                 }
             }
         }
 
         private void spOpenChat(object sender, MouseButtonEventArgs e)
         {
+            startedConversation = true;
             string[] infoToMessage = (sender as StackPanel).Tag.ToString().Split("<divider>");
             populateMessages(Int32.Parse(infoToMessage[0]), infoToMessage[1], infoToMessage[2]);
         }
@@ -346,6 +369,7 @@ namespace Social_Media_Project
         private void tbSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (tbSearch.Text.Length > 0) getUsersInDB(tbSearch.Text);
+            else spSearchResult.Children.Clear();
         }
         private async void getUsersInDB(string username)
         {
@@ -360,12 +384,12 @@ namespace Social_Media_Project
 
             for (int i = 0; i < userFromList.Count; i++)
             {
-                if ((userFromList[i].name.ToLower().Contains(username) || userFromList[i].userTag.ToLower().Contains(username)) && userFromList[i].id != _user.id)
+                if ((userFromList[i].name.ToLower().Contains(username) || userFromList[i].userTag.ToLower().Contains(username)) && userFromList[i].id != _user.id && userFromList[i].privateAccount == false)
                 {
                     StackPanel spHeader = new StackPanel
                     {
                         Orientation = Orientation.Horizontal,
-                        Margin = new Thickness(30, 15, 30, 0),
+                        Margin = new Thickness(30, 5, 30, 0),
                         Background = (Brush)bc.ConvertFrom("#FF191919")
                     };
                     spSearchResult.Children.Add(spHeader);
@@ -381,7 +405,7 @@ namespace Social_Media_Project
                     TextBlock tbTitle = new TextBlock
                     {
                         Text = userFromList[i].name + " (@" + userFromList[i].userTag + ")",
-                        Width = 1050,
+                        Width = 555,
                         FontSize = 26,
                         VerticalAlignment = VerticalAlignment.Center,
                         Margin = new Thickness(20, 0, 0, 0)
@@ -441,21 +465,41 @@ namespace Social_Media_Project
         {
             if (!string.IsNullOrEmpty(tbPostContent.Text))
             {
-                var person = new Posts()
+                tbPostImageURL.IsEnabled = true;
+                if (_imageFile.Length != 0)
                 {
-                    id = 0,
-                    userID = _user.id,
-                    name = _user.name,
-                    tag = _user.userTag,
-                    userImage = _user.imageURL,
-                    imageURL = tbPostImageURL.Text,
-                    text = tbPostContent.Text,
-                    date = DateTime.Now,
-                };
-
+                    var person = new Posts()
+                    {
+                        id = 0,
+                        userID = _user.id,
+                        name = _user.name,
+                        tag = _user.userTag,
+                        userImage = _user.imageURL,
+                        imageURL = string.Empty,
+                        imageFile = _imageFile,
+                        text = tbPostContent.Text,
+                        date = DateTime.Now,
+                    };
+                    this.postPost(person, _user.id);
+                }
+                else
+                {
+                    var person = new Posts()
+                    {
+                        id = 0,
+                        userID = _user.id,
+                        name = _user.name,
+                        tag = _user.userTag,
+                        userImage = _user.imageURL,
+                        imageURL = tbPostImageURL.Text,
+                        imageFile = Array.Empty<byte>(),
+                        text = tbPostContent.Text,
+                        date = DateTime.Now,
+                    };
+                    this.postPost(person, _user.id);
+                }
                 tbPostContent.Text = string.Empty;
                 tbPostImageURL.Text = string.Empty;
-                this.postPost(person, _user.id);
             }
         }
         private async void postPost(Posts post, int id)
@@ -478,49 +522,55 @@ namespace Social_Media_Project
                 {
                     if (posts[i].userID == followingList[j].followingID || posts[i].userID == _user.id)
                     {
-                        StackPanel spMain = new StackPanel
+                        StackPanel sBorder = new StackPanel
                         {
-                            Margin = new Thickness(30, 0, 30, 10),
-                            Background = (Brush)bc.ConvertFrom("#FF191919")
+                            Margin = new Thickness(10, 0, 30, 10),
                         };
-                        spPosts.Children.Add(spMain);
+                        sBorder.SetResourceReference(StackPanel.BackgroundProperty, "PrimaryHueMidBrush");
+                        spPosts.Children.Add(sBorder);
+
+                        StackPanel spMain = new StackPanel()
+                        {
+                            Margin = new Thickness(3),
+                            Background = (Brush)bc.ConvertFrom("#FF202020")
+                        };
+                        sBorder.Children.Add(spMain);
 
                         StackPanel spHeader = new StackPanel
                         {
-                            Orientation = Orientation.Horizontal
+                            Width = 690,
+                            Orientation = Orientation.Horizontal,
+                            Margin = new Thickness(0, 10, 0, 0),
+                            Background = (Brush)bc.ConvertFrom("#FF252525")
                         };
                         spMain.Children.Add(spHeader);
 
-                        Image dynamicImage = new Image
+                        Ellipse ell = new Ellipse()
                         {
                             Tag = posts[i].userID,
                             Cursor = Cursors.Hand,
-                            Width = 50,
-                            Height = 50,
-                            Margin = new Thickness(20, 0, 0, 0),
+                            HorizontalAlignment = HorizontalAlignment.Left, 
+                            Width = 50, Height = 50,
+                            VerticalAlignment = VerticalAlignment.Center 
                         };
-                        imageSource(dynamicImage, posts[i].userImage);
-                        dynamicImage.PreviewMouseUp += new MouseButtonEventHandler(imageProfilePerson);
-                        spHeader.Children.Add(dynamicImage);
+                        ell.PreviewMouseUp += new MouseButtonEventHandler(imageProfilePerson);
+                        spHeader.Children.Add(ell);
+
+                        ImageBrush dynamicImageLeft = new ImageBrush();
+                        dynamicImageLeft.ImageSource = new BitmapImage(new Uri(posts[i].userImage, UriKind.Absolute), new RequestCachePolicy(RequestCacheLevel.BypassCache)) { CacheOption = BitmapCacheOption.OnLoad };
+                        ell.Fill = dynamicImageLeft;
 
                         TextBlock tbTitle = new TextBlock
                         {
-                            Text = "@" + posts[i].tag + " (" + posts[i].name + ")",
+                            Text = posts[i].name + " (@" + posts[i].tag + ")",
                             Cursor = Cursors.Hand,
                             Tag = posts[i].userID,
-                            Width = 1070,
                             FontSize = 26,
                             VerticalAlignment = VerticalAlignment.Center,
                             Margin = new Thickness(20, 0, 0, 0)
                         };
                         tbTitle.PreviewMouseUp += new MouseButtonEventHandler(textProfilePerson);
                         spHeader.Children.Add(tbTitle);
-
-                        StackPanel spContents = new StackPanel
-                        {
-                            Margin = new Thickness(20, 20, 0, 0)
-                        };
-                        spMain.Children.Add(spContents);
 
                         if (!string.IsNullOrEmpty(posts[i].text))
                         {
@@ -529,37 +579,88 @@ namespace Social_Media_Project
                                 Text = posts[i].text,
                                 TextWrapping = TextWrapping.Wrap,
                                 FontSize = 20,
-                                VerticalAlignment = VerticalAlignment.Center
+                                Padding = new Thickness(10, 20, 0, 20)
                             };
-                            spContents.Children.Add(tbContent);
+                            spMain.Children.Add(tbContent);
                         }
-
                         if (!string.IsNullOrEmpty(posts[i].imageURL))
                         {
                             Image dynamicImageContent = new Image
                             {
                                 Tag = posts[i].imageURL,
-                                Width = 500,
-                                Margin = new Thickness(20, 20, 0, 10)
+                                Width = 715,
                             };
                             imageSource(dynamicImageContent, posts[i].imageURL);
-                            spContents.Children.Add(dynamicImageContent);
+                            spMain.Children.Add(dynamicImageContent);
                             dynamicImageContent.PreviewMouseUp += new MouseButtonEventHandler(showPictureFunction);
+                        }
+                        else if (posts[i].imageFile.Length != 0)
+                        {
+                            var image = new BitmapImage();
+                            using (var mem = new MemoryStream(posts[i].imageFile))
+                            {
+                                mem.Position = 0;
+                                image.BeginInit();
+                                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                                image.CacheOption = BitmapCacheOption.OnLoad;
+                                image.UriSource = null;
+                                image.StreamSource = mem;
+                                image.EndInit();
+                            }
+                            image.Freeze();
+
+                            Image dynamicImageContent = new Image
+                            {
+                                Tag = posts[i].imageFile,
+                                Width = 715,
+                            };
+                            dynamicImageContent.Source = image;
+
+                            spMain.Children.Add(dynamicImageContent);
+                            dynamicImageContent.PreviewMouseUp += new MouseButtonEventHandler(showPictureFileFunction);
                         }
                         break;
                     }
                 }
             }
         }
+
+        private void showPictureFileFunction(object sender, MouseButtonEventArgs e)
+        {
+            ImageWindow w = new ImageWindow((byte[])(sender as Image).Tag);
+            w.Show();
+            w.Left = this.Left;
+            w.Top = this.Top;
+        }
         private void showPictureFunction(object sender, MouseButtonEventArgs e)
         {
             imageToSend = (sender as Image).Tag.ToString();
             ImageWindow w = new ImageWindow(imageToSend);
             w.Show();
+            w.Left = this.Left;
+            w.Top = this.Top;
+        }
+
+        private void btnUploadPicture_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files(*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.GIF|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == true)
+            {
+                _imageFile = File.ReadAllBytes(openFileDialog.FileName);
+                tbPostImageURL.IsEnabled = false;
+                tbPostImageURL.Text = "< Uploaded Image >";
+            }
+        }
+        private void btnResetPost_Click(object sender, RoutedEventArgs e)
+        {
+            tbPostContent.Text = string.Empty;
+            tbPostImageURL.Text = string.Empty;
+            tbPostImageURL.IsEnabled = true;
+            _imageFile = Array.Empty<byte>();
         }
         #endregion
         #region PROFILE
-
         private void viewProfileUpdate()
         {
             tabMain.SelectedIndex = 3;
@@ -632,7 +733,7 @@ namespace Social_Media_Project
                 TextBlock tbTitle = new TextBlock
                 {
                     Text = posts[i].name,
-                    Width = 1070,
+                    Width = 580,
                     FontSize = 26,
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(20, 0, 0, 0)
@@ -663,7 +764,7 @@ namespace Social_Media_Project
 
                 StackPanel spContents = new StackPanel
                 {
-                    Margin = new Thickness(20, 20, 0, 0)
+                    Margin = new Thickness(0, 20, 0, 0)
                 };
                 spMain.Children.Add(spContents);
 
@@ -674,29 +775,51 @@ namespace Social_Media_Project
                         Text = posts[i].text,
                         TextWrapping = TextWrapping.Wrap,
                         FontSize = 20,
-                        VerticalAlignment = VerticalAlignment.Center
+                        Padding = new Thickness(10, 20, 0, 20)
                     };
                     spContents.Children.Add(tbContent);
                 }
-
                 if (!string.IsNullOrEmpty(posts[i].imageURL))
                 {
                     Image dynamicImageContent = new Image
                     {
                         Tag = posts[i].imageURL,
-                        Width = 500,
-                        Margin = new Thickness(20, 20, 0, 10)
+                        Width = 715,
                     };
                     imageSource(dynamicImageContent, posts[i].imageURL);
                     spContents.Children.Add(dynamicImageContent);
                     dynamicImageContent.PreviewMouseUp += new MouseButtonEventHandler(showPictureFunction);
+                }
+                else if (posts[i].imageFile.Length != 0)
+                {
+                    var image = new BitmapImage();
+                    using (var mem = new MemoryStream(posts[i].imageFile))
+                    {
+                        mem.Position = 0;
+                        image.BeginInit();
+                        image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.UriSource = null;
+                        image.StreamSource = mem;
+                        image.EndInit();
+                    }
+                    image.Freeze();
+
+                    Image dynamicImageContent = new Image
+                    {
+                        Tag = posts[i].imageFile,
+                        Width = 715,
+                    };
+                    dynamicImageContent.Source = image;
+
+                    spMain.Children.Add(dynamicImageContent);
+                    dynamicImageContent.PreviewMouseUp += new MouseButtonEventHandler(showPictureFileFunction);
                 }
             }
         }
         private void btnDeletePost(object sender, MouseButtonEventArgs e)
         {
             deletePostFunction((sender as Button).Tag);
-
         }
         private async void deletePostFunction(object tag)
         {
@@ -707,12 +830,14 @@ namespace Social_Media_Project
         }
 
         //      SETTINGS
-        private void TabItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        private void tabSettings_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (tabMainProfile.SelectedIndex != 2)
             {
                 tabMainProfile.SelectedIndex = 2;
                 getUserInformation(_user.id);
+                tbSettingsChangesSaved.Visibility = Visibility.Hidden;
+                tbSettingsChangesError.Visibility = Visibility.Collapsed;
             }
         }
         private async void getUserInformation(int inspectProfileID)
@@ -733,24 +858,23 @@ namespace Social_Media_Project
 
             if(currentUser.privateAccount) cbPrivateAccount.SelectedIndex = 0;
             else cbPrivateAccount.SelectedIndex = 1;
-
-            if (currentUser.dnd) cbDoNotDisturb.SelectedIndex = 1;
-            else cbDoNotDisturb.SelectedIndex = 0;
         }
         private void btnSettingsSaveChanges_Click(object sender, RoutedEventArgs e)
         {
+            tbSettingsChangesError.Visibility = Visibility.Collapsed;
+            tbSettingsChangesSaved.Visibility = Visibility.Collapsed;
+
             string password;
             string image;
             bool privateAcc;
-            bool dndAcc;
 
-            if (tbSettingsOldPassword.Text == _user.password && tbSettingsNewPassword == tbSettingsNewRePassword)
+            if (tbSettingsOldPassword.Password == _user.password && tbSettingsNewPassword.Password == tbSettingsNewRePassword.Password)
             {
-                password = tbSettingsNewRePassword.Text;
+                password = tbSettingsNewRePassword.Password;
                 tbSettingsChangesError.Visibility = Visibility.Collapsed;
                 tbSettingsChangesSaved.Visibility = Visibility.Visible;
             }
-            else if (string.IsNullOrEmpty(tbSettingsOldPassword.Text) && string.IsNullOrEmpty(tbSettingsNewPassword.Text) && string.IsNullOrEmpty(tbSettingsNewRePassword.Text))
+            else if (string.IsNullOrEmpty(tbSettingsOldPassword.Password) && string.IsNullOrEmpty(tbSettingsNewPassword.Password) && string.IsNullOrEmpty(tbSettingsNewRePassword.Password))
             {
                 password = _user.password;
                 tbSettingsChangesError.Visibility = Visibility.Collapsed;
@@ -768,8 +892,8 @@ namespace Social_Media_Project
             else image = "https://i.imgur.com/Gtjeuu5.png";
 
             privateAcc = cbPrivateAccount.SelectedIndex == 0 ? true : false;
-            dndAcc = cbDoNotDisturb.SelectedIndex == 0 ? false : true;
 
+            imgUserImage.Source = new BitmapImage(new Uri(image, UriKind.Absolute), new RequestCachePolicy(RequestCacheLevel.BypassCache)) { CacheOption = BitmapCacheOption.OnLoad };
             var userEdit = new Users()
             {
                 id = _user.id,
@@ -785,10 +909,40 @@ namespace Social_Media_Project
                 relationship = cbRelationship.Text != null ? cbRelationship.Text : _user.relationship,
                 joined = _user.joined,
                 privateAccount = privateAcc,
-                dnd = dndAcc
+                dnd = false
             };
 
             updateUserProfile(userEdit);
+            setupProfilePosts(_user.id);
+        }
+        private void themePicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string color = "";
+
+            if (themePicker.SelectedIndex == 0) { color = "Purple"; }
+            else if (themePicker.SelectedIndex == 1) { color = "Indigo"; }
+            else if (themePicker.SelectedIndex == 2) { color = "Blue"; }
+            else if (themePicker.SelectedIndex == 3) { color = "LightBlue"; }
+            else if (themePicker.SelectedIndex == 4) { color = "Cyan"; }
+            else if (themePicker.SelectedIndex == 5) { color = "Teal"; }
+            else if (themePicker.SelectedIndex == 6) { color = "Green"; }
+            else if (themePicker.SelectedIndex == 7) { color = "LightGreen"; }
+            else if (themePicker.SelectedIndex == 8) { color = "Red"; }
+            else if (themePicker.SelectedIndex == 9) { color = "Pink"; }
+            else if (themePicker.SelectedIndex == 10) { color = "Brown"; }
+            else if (themePicker.SelectedIndex == 11) { color = "Orange"; }
+            else if (themePicker.SelectedIndex == 12) { color = "Yellow"; }
+            else if (themePicker.SelectedIndex == 13) { color = "Lime"; }
+
+            if (themePicker.SelectedIndex >= 0 && themePicker.SelectedIndex <= 13)
+            {
+                Uri uri = new Uri($"pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor." + color + ".xaml");
+                Application.Current.Resources.MergedDictionaries.RemoveAt(2);
+                Application.Current.Resources.MergedDictionaries.Insert(2, new ResourceDictionary() { Source = uri });
+
+                Properties.Settings.Default.color = color;
+                Properties.Settings.Default.Save();
+            }
         }
 
         private async void updateUserProfile(Users userEdit)
@@ -902,7 +1056,7 @@ namespace Social_Media_Project
                 StackPanel spHeader = new StackPanel
                 {
                     Orientation = Orientation.Horizontal,
-                    Margin = new Thickness(30, 15, 30, 0),
+                    Margin = new Thickness(30, 5, 30, 0),
                     Background = (Brush)bc.ConvertFrom("#FF191919")
                 };
                 spFollowingList.Children.Add(spHeader);
@@ -918,7 +1072,7 @@ namespace Social_Media_Project
                 TextBlock tbTitle = new TextBlock
                 {
                     Text = followingList[i].name,
-                    Width = 960,
+                    Width = 480,
                     FontSize = 26,
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(20, 0, 0, 0)
@@ -998,7 +1152,6 @@ namespace Social_Media_Project
         {
             viewProfileUpdate((sender as Image).Tag.ToString());
         }
-
         private async void viewProfileUpdate(string ID)
         {
             if(_user.id.ToString() != ID) tabSettings.Visibility = Visibility.Collapsed;
@@ -1072,13 +1225,28 @@ namespace Social_Media_Project
                 }
             }
         }
-
         private async void postNewPrivateMessage(Messages message)
         {
             await client.PostAsJsonAsync(_user.id + "/messages", message);
             populateMessage();
             svChat.ScrollToEnd();
         }
+
+        private void btnDeleteChat_Click(object sender, RoutedEventArgs e)
+        {
+            deleteChat();
+        }
+        private async void deleteChat()
+        {
+            await client.DeleteAsync(_user.id + "/" + toIDMessage + "/messages");
+            toIDMessage = 0;
+            toNameMessage = "";
+            toImageMessage = "";
+            populateMessage();
+            btnDeleteChat.Visibility = Visibility.Collapsed;
+    }
         #endregion
+
+
     }
 }

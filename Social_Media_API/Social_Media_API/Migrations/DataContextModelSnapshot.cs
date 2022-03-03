@@ -102,6 +102,10 @@ namespace Social_Media_API.Migrations
                     b.Property<DateTime>("date")
                         .HasColumnType("datetime2");
 
+                    b.Property<byte[]>("imageFile")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<string>("imageURL")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -141,9 +145,6 @@ namespace Social_Media_API.Migrations
                     b.Property<string>("bio")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("dnd")
-                        .HasColumnType("bit");
 
                     b.Property<string>("email")
                         .IsRequired()

@@ -7,6 +7,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="600" WindowStyle="none" WindowStartupLocation="CenterScreen" Background="Black" MouseDown="mainWindow_MouseDown" ResizeMode="NoResize">
+
     <Grid>
         <Grid Height="30" VerticalAlignment="Top" Background="#FF303030" PreviewMouseDown="spHeader_PreviewMouseDown" HorizontalAlignment="Stretch">
             <StackPanel x:Name="spHeader" HorizontalAlignment="Right">
@@ -27,11 +28,11 @@
             </TextBlock.RenderTransform>
         </TextBlock>
 
-        <StackPanel x:Name="spLogin" Background="#FF5F5F5F" MouseEnter="spLogin_MouseEnter" MouseLeave="spLogin_MouseLeave" PreviewMouseDown="spLogin_PreviewMouseDown" Width="300" HorizontalAlignment="Left" Margin="0,30,0,0">
+        <StackPanel x:Name="spLogin" Background="#FF444444" MouseEnter="spLogin_MouseEnter" MouseLeave="spLogin_MouseLeave" PreviewMouseDown="spLogin_PreviewMouseDown" Width="300" HorizontalAlignment="Left" Margin="0,30,0,0">
             <TextBlock x:Name="tbLogin" TextAlignment="Center" Text="LOGIN" Margin="0,200,0,0" FontWeight="Bold" FontSize="30" Foreground="White"/>
             <StackPanel x:Name="spLoginPage" Opacity="0" Margin="50,0,50,0">
                 <TextBox x:Name="tbUsernameLogin" materialDesign:HintAssist.Hint="Username" Foreground="White" FontSize="20" Margin="10,50,10,0"/>
-                <TextBox x:Name="tbPasswordLogin" materialDesign:HintAssist.Hint="Password" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
+                <PasswordBox x:Name="tbPasswordLogin" materialDesign:HintAssist.Hint="Password" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
                 <TextBlock x:Name="tbIncorrect" Text="Incorrect username or password" Foreground="#FFFF0101" FontSize="18" Margin="10,5,10,0" Visibility="Hidden"/>
                 <Button x:Name="btnLogin" Height="41" Margin="60,150,60,0" FontSize="20" Foreground="#DDFFFFFF" Click="btnLogin_Click">Login</Button>
             </StackPanel>
@@ -41,8 +42,8 @@
             <StackPanel x:Name="spRegisterPage" Opacity="0" Margin="50,0,50,0">
                 <TextBox x:Name="tbNameRegister" materialDesign:HintAssist.Hint="Full name" Foreground="White" FontSize="20" Margin="10,20,10,0"/>
                 <TextBox x:Name="tbUsernameRegister" materialDesign:HintAssist.Hint="Username" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
-                <TextBox x:Name="tbPasswordRegister" materialDesign:HintAssist.Hint="Password" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
-                <TextBox x:Name="tbPasswordReRegister" materialDesign:HintAssist.Hint="Repeat Password" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
+                <PasswordBox x:Name="tbPasswordRegister" materialDesign:HintAssist.Hint="Password" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
+                <PasswordBox x:Name="tbPasswordReRegister" materialDesign:HintAssist.Hint="Repeat Password" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
                 <TextBox x:Name="tbEmailRegister" materialDesign:HintAssist.Hint="Email" Foreground="White" FontSize="20" Margin="10,10,10,0"/>
                 <TextBlock x:Name="tbIncorrectRegister" Text="" Foreground="#FFFF0101" FontSize="18" Margin="10,5,10,0" Visibility="Visible"/>
 

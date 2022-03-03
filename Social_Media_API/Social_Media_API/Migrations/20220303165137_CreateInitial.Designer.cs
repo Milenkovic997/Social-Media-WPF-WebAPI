@@ -12,7 +12,7 @@ using Social_Media_API.Data;
 namespace Social_Media_API.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220222152556_CreateInitial")]
+    [Migration("20220303165137_CreateInitial")]
     partial class CreateInitial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -104,6 +104,10 @@ namespace Social_Media_API.Migrations
                     b.Property<DateTime>("date")
                         .HasColumnType("datetime2");
 
+                    b.Property<byte[]>("imageFile")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<string>("imageURL")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -143,9 +147,6 @@ namespace Social_Media_API.Migrations
                     b.Property<string>("bio")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("dnd")
-                        .HasColumnType("bit");
 
                     b.Property<string>("email")
                         .IsRequired()

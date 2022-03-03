@@ -12,6 +12,7 @@ namespace Social_Media_API
         public string tag { get; set; } = string.Empty;
         public string userImage { get; set; } = string.Empty;
         public string imageURL { get; set; } = string.Empty;
+        public byte[] imageFile { get; set; } = Array.Empty<byte>();
         public string text { get; set; } = string.Empty;
         public DateTime date { get; set; } = DateTime.Now;
     }

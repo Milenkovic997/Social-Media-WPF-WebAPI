@@ -44,12 +44,14 @@ namespace Social_Media_API.Controllers
             if (user == null) return BadRequest("404");
 
             user.id = id;
+            user.password = request.password;
             user.name = request.name;
             user.imageURL = request.imageURL;
             user.imageURLBG = request.imageURLBG;
             user.bio = request.bio; 
             user.livesIn = request.livesIn;
             user.relationship = request.relationship;
+            user.privateAccount = request.privateAccount;
 
             await _dataContext.SaveChangesAsync(); 
             return Ok(await _dataContext.Users.ToListAsync());
@@ -197,6 +199,16 @@ namespace Social_Media_API.Controllers
 
             await _dataContext.SaveChangesAsync();
             return Ok(await _dataContext.Messages.ToListAsync());
+        }
+        [HttpDelete("/api/{sendingFromID}/{sendingToID}/messages")]
+        public async Task<ActionResult<List<Messages>>> DeleteMessages(int sendingFromID, int sendingToID)
+        {
+            var messagesToUser = await _dataContext.Messages.Where(m => (m.fromID == sendingFromID && m.toID == sendingToID) || (m.toID == sendingFromID && m.fromID == sendingToID)).ToListAsync();
+            if (messagesToUser == null) { return BadRequest("404"); }
+
+            _dataContext.Messages.RemoveRange(messagesToUser);
+            await _dataContext.SaveChangesAsync();
+            return Ok(await _dataContext.Following.ToListAsync());
         }
     }
 }

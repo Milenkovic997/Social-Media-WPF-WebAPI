@@ -17,11 +17,18 @@ namespace Social_Media_Project
 
         public WelcomeWindow()
         {
-            client.BaseAddress = new Uri("https://localhost:7227/api/");
+            client.BaseAddress = new Uri("https://localhost:5001/api/");
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
             InitializeComponent();
+            tbUsernameLogin.Text = "stefan123";
+            tbPasswordLogin.Password = "123";
+
+            string color = Properties.Settings.Default.color; //set color theme that was last used
+            Uri uri = new Uri($"pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor." + color + ".xaml");
+            Application.Current.Resources.MergedDictionaries.RemoveAt(2);
+            Application.Current.Resources.MergedDictionaries.Insert(2, new ResourceDictionary() { Source = uri });
         }
 
         private void mainWindow_MouseDown(object sender, MouseButtonEventArgs e) 
@@ -37,7 +44,7 @@ namespace Social_Media_Project
             var people = JsonConvert.DeserializeObject<List<Users>>(response);
 
             string username = tbUsernameLogin.Text;
-            string password = tbPasswordLogin.Text; 
+            string password = tbPasswordLogin.Password; 
 
             if(username != null || password != null)
             {
@@ -74,10 +81,10 @@ namespace Social_Media_Project
             var response = await client.GetStringAsync("users");
             List<Users> people = JsonConvert.DeserializeObject<List<Users>>(response);
 
-            if (tbNameRegister.Text != null || tbUsernameRegister.Text != null || tbPasswordRegister.Text != null ||
-                tbPasswordReRegister.Text != null || tbEmailRegister.Text != null)
+            if (tbNameRegister.Text != null || tbUsernameRegister.Text != null || tbPasswordRegister.Password != null ||
+                tbPasswordReRegister.Password != null || tbEmailRegister.Text != null)
             {
-                if (tbPasswordRegister.Text == tbPasswordReRegister.Text)
+                if (tbPasswordRegister.Password == tbPasswordReRegister.Password)
                 {
                     bool personExists = false;
                     for (int i = 0; i < people.Count; i++)
@@ -99,15 +106,15 @@ namespace Social_Media_Project
                         var user = new Users()
                         {
                             username = tbUsernameRegister.Text,
-                            password = tbPasswordRegister.Text,
+                            password = tbPasswordRegister.Password,
                             email = tbEmailRegister.Text,
                             name = tbNameRegister.Text,
                             userTag = tbUsernameRegister.Text
                         };
                         tbNameRegister.Text = string.Empty;
                         tbUsernameRegister.Text = string.Empty;
-                        tbPasswordRegister.Text = string.Empty;
-                        tbPasswordReRegister.Text = string.Empty;
+                        tbPasswordRegister.Password = string.Empty;
+                        tbPasswordReRegister.Password = string.Empty;
                         tbEmailRegister.Text = string.Empty;
 
                         this.postUsers(user);

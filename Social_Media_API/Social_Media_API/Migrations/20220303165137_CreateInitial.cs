@@ -56,6 +56,7 @@ namespace Social_Media_API.Migrations
                     tag = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     userImage = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     imageURL = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    imageFile = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     text = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     date = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -81,8 +82,7 @@ namespace Social_Media_API.Migrations
                     livesIn = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     relationship = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     joined = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    privateAccount = table.Column<bool>(type: "bit", nullable: false),
-                    dnd = table.Column<bool>(type: "bit", nullable: false)
+                    privateAccount = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

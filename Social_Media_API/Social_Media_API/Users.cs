@@ -21,7 +21,6 @@ namespace Social_Media_API
 
         public DateTime joined { get; set; }
         public bool privateAccount { get; set; } = false;
-        public bool dnd { get; set; } = false;
     }
 
     public class Following
