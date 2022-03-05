@@ -466,21 +466,24 @@ namespace Social_Media_Project
             if (!string.IsNullOrEmpty(tbPostContent.Text))
             {
                 tbPostImageURL.IsEnabled = true;
-                if (_imageFile.Length != 0)
+                if (_imageFile != null)
                 {
-                    var person = new Posts()
+                    if (_imageFile.Length != 0)
                     {
-                        id = 0,
-                        userID = _user.id,
-                        name = _user.name,
-                        tag = _user.userTag,
-                        userImage = _user.imageURL,
-                        imageURL = string.Empty,
-                        imageFile = _imageFile,
-                        text = tbPostContent.Text,
-                        date = DateTime.Now,
-                    };
-                    this.postPost(person, _user.id);
+                        var person = new Posts()
+                        {
+                            id = 0,
+                            userID = _user.id,
+                            name = _user.name,
+                            tag = _user.userTag,
+                            userImage = _user.imageURL,
+                            imageURL = string.Empty,
+                            imageFile = _imageFile,
+                            text = tbPostContent.Text,
+                            date = DateTime.Now,
+                        };
+                        this.postPost(person, _user.id);
+                    }
                 }
                 else
                 {
